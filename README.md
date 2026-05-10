@@ -33,4 +33,4 @@ The cuda-oxide research report is stored at:
 reports/cuda-oxide-research-report.md
 ```
 
-The report covers CUDA programming context, Rust's value in GPU programming, cuda-oxide architecture and core implementation, technical feasibility, competitor comparison, risks, and decision recommendations.
+The report covers CUDA programming context, Rust's value in GPU programming, cuda-oxide architecture and core implementation, technical feasibility, competitor comparison, Rust language ecosystem implications, NPU/accelerator ecosystem opportunities, and decision recommendations.
