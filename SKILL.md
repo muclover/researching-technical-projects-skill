@@ -33,12 +33,13 @@ Do not use this for a narrow implementation plan, API documentation, code review
    - Application technology product
    - Research or frontier technology moving toward engineering
    - Mixed type, which needs all relevant sections
-5. Establish evaluation dimensions before researching: technical merit, industrial value, competitive position, maturity, implementation cost, risks, and verification plan.
-6. Collect sources and evidence: official docs, papers, repos, benchmarks, release notes, customer cases, vendor docs, community activity, funding/adoption signals, standards, and licensing.
-7. Separate facts from inference. Mark assumptions, unknowns, and claims that need verification.
-8. Compare against alternatives, not an abstract ideal. Include open-source, commercial, cloud-provider, academic, and incumbent approaches when relevant.
-9. Convert findings into recommendations: adoption posture, technical route, validation milestones, and kill criteria.
-10. End with next-step validation questions rather than a vague "continue researching".
+5. Establish evaluation dimensions before researching: technical merit, architecture, core implementation, industrial value, competitive position, maturity, implementation cost, risks, and verification plan.
+6. Collect sources and evidence: official docs, papers, repos, architecture docs, source code entry points, benchmarks, release notes, customer cases, vendor docs, community activity, funding/adoption signals, standards, and licensing.
+7. If source code is available, identify the execution path and core implementation before writing conclusions. Name the modules/files that implement the project's main mechanism.
+8. Separate facts from inference. Mark assumptions, unknowns, and claims that need verification.
+9. Compare against alternatives, not an abstract ideal. Include open-source, commercial, cloud-provider, academic, and incumbent approaches when relevant.
+10. Convert findings into recommendations: adoption posture, technical route, validation milestones, and kill criteria.
+11. End with next-step validation questions rather than a vague "continue researching".
 
 ## Default Report Structure
 
@@ -64,21 +65,30 @@ Use this structure unless the user asks for a shorter or specialized format:
    - Market/application scope
    - Adoption drivers and adoption barriers
 
-4. Technical Principles and System Architecture
+4. Technical Principles
    - Core mechanism
-   - Main modules and interfaces
    - Algorithms, protocols, architecture, or platform dependencies
    - Technical boundaries: what it can and cannot solve
    - Difference from conventional approaches
 
-5. Technical Feasibility Assessment
+5. Architecture and Core Implementation
+   - Top-level architecture and layer boundaries
+   - Main modules, packages, services, crates, components, or subsystems
+   - End-to-end execution path or data/control flow
+   - Core implementation mechanisms and algorithms
+   - Public APIs, internal interfaces, extension points, and plugin points
+   - Storage, runtime, compiler, networking, scheduling, or deployment design when relevant
+   - Important source files or docs that prove the implementation claim
+   - Architecture strengths, bottlenecks, and maintainability risks
+
+6. Technical Feasibility Assessment
    - Maturity level
    - Performance, reliability, scalability, security, operability
    - Engineering difficulty and integration cost
    - Dependencies: hardware, data, models, platform, ecosystem, team capability
    - Key risks and measurable validation metrics
 
-6. Industry Competitors and Alternative Technologies
+7. Industry Competitors and Alternative Technologies
    - Open-source projects
    - Commercial products
    - Cloud/provider solutions
@@ -86,10 +96,10 @@ Use this structure unless the user asks for a shorter or specialized format:
    - Incumbent/manual/traditional alternatives
    - Compare technical route, performance, cost, usability, ecosystem maturity, maintainability, license, community activity, and fit to the user's scenario
 
-7. Type-Specific Analysis
+8. Type-Specific Analysis
    - Apply every relevant subsection for mixed projects.
 
-8. Landing Path and Resource Assessment
+9. Landing Path and Resource Assessment
    - PoC scope
    - MVP or pilot scope
    - Productionization path
@@ -97,11 +107,11 @@ Use this structure unless the user asks for a shorter or specialized format:
    - Team, time, budget, and milestone assumptions
    - Integration with existing systems
 
-9. Risks, Constraints, and Mitigations
+10. Risks, Constraints, and Mitigations
    - Technical, industry, competitor, ecosystem, supply chain, compliance, license, team, and cost risks
    - Mitigation or validation method for each high-impact risk
 
-10. Conclusion and Decision Recommendation
+11. Conclusion and Decision Recommendation
    - Recommended posture: monitor, PoC, pilot, formal project, strategic investment, or reject
    - Preferred route and rejected routes
    - Top 3-5 questions to verify next
@@ -168,6 +178,7 @@ If the user has not specified length, default to a decision report and ask only 
 Before making strong claims, look for:
 
 - Official documentation and architecture material
+- Source code for the core path: entry point, module boundaries, data/control flow, APIs, runtime hooks, and implementation files
 - Source repository activity, issues, releases, contributors, and license
 - Benchmarks and whether benchmark conditions match real workloads
 - Papers, technical blogs, talks, and standards documents
@@ -181,6 +192,8 @@ Before making strong claims, look for:
 | Mistake | Fix |
 | --- | --- |
 | Only describing the technology | Add decision recommendation, value, competitors, and risks |
+| Only describing architecture from docs | Read source entry points and name the concrete modules/files that implement the core path |
+| Skipping architecture and core implementation | Add a section covering layers, modules, execution flow, APIs, implementation mechanisms, and maintainability risks |
 | Treating all project types the same | Apply infrastructure, product, and research-specific sections as needed |
 | Listing competitors without comparison dimensions | Use route, performance, cost, usability, ecosystem, license, and fit |
 | Making industry claims without adoption evidence | Mark as inference or cite adoption, customer, funding, or ecosystem signals |
@@ -197,11 +210,12 @@ When beginning a report, use this compact outline:
 ## 1. Executive Summary
 ## 2. Background and Problem Definition
 ## 3. Industry Value and Application Scenarios
-## 4. Technical Principles and System Architecture
-## 5. Technical Feasibility Assessment
-## 6. Industry Competitors and Alternative Technologies
-## 7. Type-Specific Analysis
-## 8. Landing Path and Resource Assessment
-## 9. Risks, Constraints, and Mitigations
-## 10. Conclusion and Decision Recommendation
+## 4. Technical Principles
+## 5. Architecture and Core Implementation
+## 6. Technical Feasibility Assessment
+## 7. Industry Competitors and Alternative Technologies
+## 8. Type-Specific Analysis
+## 9. Landing Path and Resource Assessment
+## 10. Risks, Constraints, and Mitigations
+## 11. Conclusion and Decision Recommendation
 ```
