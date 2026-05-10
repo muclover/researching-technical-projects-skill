@@ -1,0 +1,9 @@
+*
+!.gitignore
+!skills/
+!skills/**
+!.agent/
+!.agent/skills/
+!.agent/skills/**
+!reports/
+!reports/**
