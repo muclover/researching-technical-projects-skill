@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<!-- ==================================================================
+     LONG DOCUMENT TEMPLATE · parchment design system
+     多页 A4 白皮书/技术报告/年度总结
+     结构：封面 -> 目录 -> 执行摘要 -> 正文章节 -> 附录
+     ================================================================== -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>NVIDIA cuda-oxide 技术项目调研 · Long Doc</title>
+<meta name="author" content="muclover">
+<meta name="description" content="cuda-oxide 是 NVIDIA NVlabs 的实验性 Rust-to-CUDA 编译器项目，本报告评估其架构、成熟度和采用边界。">
+<meta name="keywords" content="cuda-oxide,Rust,GPU 编译器,CUDA,NVIDIA">
+<meta name="generator" content="Kami">
+<style>
+  /* Regular weight */
+  @font-face {
+    font-family: "TsangerJinKai02";
+    src: url("../.codex/skills/kami/assets/fonts/TsangerJinKai02-W04.ttf") format("truetype"),
+       url("https://cdn.jsdelivr.net/gh/tw93/Kami@main/assets/fonts/TsangerJinKai02-W04.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+  }
+
+  /* Bold weight - W05 for all bold variants */
+  @font-face {
+    font-family: "TsangerJinKai02";
+    src: url("../.codex/skills/kami/assets/fonts/TsangerJinKai02-W05.ttf") format("truetype"),
+       url("https://cdn.jsdelivr.net/gh/tw93/Kami@main/assets/fonts/TsangerJinKai02-W05.ttf") format("truetype");
+    font-weight: 500;
+    font-style: normal;
+  }
+
+  @page {
+    size: A4;
+    margin: 20mm 22mm 22mm 22mm;
+    background: #f5f4ed;
+
+    @top-right {
+      content: string(section-title);
+      font-family: "TsangerJinKai02", "Source Han Serif SC",
+                   "Noto Serif CJK SC", "Songti SC", Georgia, serif;
+      font-size: 8pt;
+      color: #6b6a64;
+    }
+
+    @bottom-center {
+      content: counter(page) "  ·  NVIDIA cuda-oxide 技术项目调研 · Long Doc";
+      font-family: "TsangerJinKai02", "Source Han Serif SC",
+                   "Noto Serif CJK SC", "Songti SC", Georgia, serif;
+      font-size: 9pt;
+      color: #6b6a64;
+    }
+  }
+
+  @page:first {
+    @top-right { content: ""; }
+    @bottom-center { content: ""; }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --parchment: #f5f4ed;
+    --ivory:     #faf9f5;
+    --near-black:#141413;
+    --dark-warm: #3d3d3a;
+    --olive:     #504e49;
+    --stone:     #6b6a64;
+    --brand:     #1B365D;
+    --border:    #e8e6dc;
+    --border-soft:#e5e3d8;
+    --tag-bg:    #E4ECF5;
+    --serif: "TsangerJinKai02", "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "STSong", Georgia, serif;
+    --sans: var(--serif);
+  }
+
+  html, body { background: var(--parchment); }
+
+  @media screen {
+    body { max-width: 210mm; margin: 0 auto; padding: 20mm 22mm 22mm 22mm; }
+  }
+
+  body {
+    color: var(--near-black);
+    font-family: var(--serif);
+    font-size: 10.5pt;
+    line-height: 1.55;
+    letter-spacing: 0.3pt;
+    widows: 3;
+    orphans: 3;
+  }
+
+  .sans {
+    font-family: var(--sans);
+  }
+
+  /* ========== COVER ========== */
+  .cover {
+    min-height: 240mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 40mm 0 0 0;
+    break-after: page;
+  }
+  .cover-eyebrow {
+    font-family: var(--sans);
+    font-size: 10pt;
+    color: var(--brand);
+    letter-spacing: 1pt;
+    text-transform: uppercase;
+    margin-bottom: 18pt;
+  }
+  .cover-title {
+    font-size: 36pt;
+    font-weight: 500;
+    color: var(--near-black);
+    line-height: 1.15;
+    letter-spacing: 0.3pt;
+    margin-bottom: 16pt;
+  }
+  .cover-sub {
+    font-family: var(--sans);
+    font-size: 14pt;
+    color: var(--olive);
+    line-height: 1.5;
+    max-width: 85%;
+    margin-bottom: 30pt;
+  }
+  .cover-meta {
+    font-family: var(--sans);
+    font-size: 10pt;
+    color: var(--stone);
+    line-height: 1.5;
+  }
+  .cover-meta strong {
+    color: var(--dark-warm);
+    font-weight: 500;
+  }
+
+  /* ========== TOC（目录）========== */
+  .toc { break-after: page; }
+  .toc h2 {
+    font-size: 22pt;
+    font-weight: 500;
+    margin-bottom: 14pt;
+    border-left: 2.5pt solid var(--brand);
+    border-radius: 1.5pt;
+    padding-left: 8pt;
+  }
+  .toc-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 6pt 0;
+    border-bottom: 0.3pt dotted var(--border);
+    font-size: 11pt;
+  }
+  .toc-item:last-of-type { border-bottom: none; }
+  .toc-num {
+    color: var(--brand);
+    font-weight: 500;
+    min-width: 30pt;
+  }
+  .toc-title {
+    flex: 1;
+    color: var(--near-black);
+    padding-left: 6pt;
+  }
+  .toc-page {
+    color: var(--stone);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ========== HEADINGS ========== */
+  h1 {
+    font-size: 22pt;
+    font-weight: 500;
+    line-height: 1.2;
+    margin: 0 0 10pt 0;
+    border-left: 2.5pt solid var(--brand);
+    border-radius: 1.5pt;
+    padding-left: 8pt;
+    color: var(--near-black);
+    break-after: avoid;
+  }
+
+  h2 {
+    font-size: 16pt;
+    font-weight: 500;
+    line-height: 1.25;
+    margin: 24pt 0 8pt 0;
+    color: var(--near-black);
+    break-after: avoid;
+    string-set: section-title content();
+  }
+
+  h3 {
+    font-size: 13pt;
+    font-weight: 500;
+    line-height: 1.3;
+    margin: 18pt 0 6pt 0;
+    color: var(--dark-warm);
+    break-after: avoid;
+  }
+
+  .chapter-num {
+    font-family: var(--sans);
+    font-size: 10pt;
+    color: var(--brand);
+    letter-spacing: 1pt;
+    text-transform: uppercase;
+    margin-bottom: 6pt;
+  }
+
+  /* ========== PARAGRAPHS ========== */
+  p {
+    margin: 0 0 10pt 0;
+    line-height: 1.55;
+    color: var(--near-black);
+    widows: 2;
+    orphans: 2;
+  }
+
+  .lead {
+    font-size: 12pt;
+    line-height: 1.55;
+    color: var(--dark-warm);
+    margin-bottom: 14pt;
+  }
+
+  .hl { color: var(--brand); font-weight: 500; }
+  strong { font-weight: 500; }
+
+  /* ========== LISTS ========== */
+  ul, ol {
+    margin: 6pt 0 10pt 0;
+    padding-left: 20pt;
+    line-height: 1.55;
+  }
+  ul li::marker { color: var(--brand); }
+  ol li::marker { color: var(--brand); font-weight: 500; }
+
+  /* ========== QUOTE ========== */
+  blockquote, .quote {
+    border-left: 2pt solid var(--brand);
+    margin: 12pt 0;
+    padding: 4pt 0 4pt 16pt;
+    color: var(--olive);
+    line-height: 1.55;
+    break-inside: avoid;
+  }
+  blockquote .cite, .quote .cite {
+    display: block;
+    font-size: 9pt;
+    color: var(--stone);
+    margin-top: 4pt;
+  }
+
+  /* ========== CODE ========== */
+  /* Mono first for English glyphs, then CJK fallback so Chinese comments
+     inside code/pre render correctly. A mono-only chain causes missing
+     glyphs rendered as "?" or missing-glyph boxes in WeasyPrint when the system lacks
+     a mono font with CJK coverage. */
+  code {
+    font-family: "JetBrains Mono", "SF Mono", Consolas,
+                 "TsangerJinKai02", "Source Han Serif SC",
+                 "Noto Serif CJK SC", "Songti SC", monospace;
+    font-size: 9pt;
+    background: var(--ivory);
+    padding: 1pt 4pt;
+    border-radius: 2pt;
+    color: var(--dark-warm);
+  }
+  pre {
+    font-family: "JetBrains Mono", "SF Mono", Consolas,
+                 "TsangerJinKai02", "Source Han Serif SC",
+                 "Noto Serif CJK SC", "Songti SC", monospace;
+    font-size: 9pt;
+    line-height: 1.5;
+    background: var(--ivory);
+    border-radius: 4pt;
+    padding: 10pt 14pt;
+    margin: 10pt 0;
+    white-space: pre-wrap;
+    color: var(--near-black);
+    break-inside: avoid;
+  }
+  pre code { background: transparent; padding: 0; font-size: inherit; }
+
+  /* ========== TABLE (kami-table) ========== */
+  table, .kami-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+    margin: 12pt 0;
+    break-inside: avoid;
+  }
+  table th, .kami-table th {
+    text-align: left;
+    font-weight: 500;
+    color: var(--dark-warm);
+    padding: 6pt 8pt;
+    border-bottom: 1pt solid var(--border);
+    background: transparent;
+  }
+  table td, .kami-table td {
+    padding: 5pt 8pt;
+    border-bottom: 0.3pt solid var(--border-soft);
+    vertical-align: top;
+  }
+  table.compact th, .kami-table.compact th { padding: 3pt 6pt; font-size: 8pt; }
+  table.compact td, .kami-table.compact td { padding: 2pt 6pt; font-size: 8pt; line-height: 1.4; }
+  table.financial td:not(:first-child), .kami-table.financial td:not(:first-child) {
+    text-align: right; font-variant-numeric: tabular-nums;
+  }
+  table.financial th:not(:first-child), .kami-table.financial th:not(:first-child) { text-align: right; }
+  table.striped tbody tr:nth-child(even) td, .kami-table.striped tbody tr:nth-child(even) td {
+    background: var(--ivory);
+  }
+  table .total td, .kami-table .total td {
+    font-weight: 500; border-top: 1pt solid var(--brand); border-bottom: none; color: var(--near-black);
+  }
+
+  /* ========== CALLOUT ========== */
+  .callout {
+    background: var(--ivory);
+    border-left: 2pt solid var(--brand);
+    padding: 10pt 14pt;
+    border-radius: 3pt;
+    margin: 12pt 0;
+    line-height: 1.55;
+    break-inside: avoid;
+  }
+  .callout blockquote,
+  .callout .quote {
+    border-left: none;
+    padding-left: 0;
+    margin: 6pt 0;
+    color: var(--olive);
+  }
+  .callout blockquote:first-child,
+  .callout .quote:first-child { margin-top: 0; }
+  .callout blockquote:last-child,
+  .callout .quote:last-child  { margin-bottom: 0; }
+
+  .takeaway {
+    background: var(--ivory);
+    border-radius: 4pt;
+    padding: 10pt 14pt;
+    margin: 14pt 0;
+    break-inside: avoid;
+  }
+  .takeaway-label {
+    font-family: var(--sans);
+    font-size: 9pt;
+    color: var(--brand);
+    letter-spacing: 0.5pt;
+    text-transform: uppercase;
+    margin-bottom: 4pt;
+  }
+
+  /* ========== TAG ========== */
+  .tag {
+    display: inline-block;
+    background: var(--tag-bg);
+    color: var(--brand);
+    font-family: var(--sans);
+    font-size: 9pt;
+    font-weight: 500;
+    padding: 1pt 6pt;
+    border-radius: 3pt;
+    margin-right: 4pt;
+  }
+
+  /* ========== FIGURE ========== */
+  figure {
+    margin: 14pt 0;
+    break-inside: avoid;
+  }
+  figure img {
+    max-width: 100%;
+    border-radius: 4pt;
+  }
+  figcaption {
+    font-family: var(--sans);
+    font-size: 9pt;
+    color: var(--stone);
+    margin-top: 6pt;
+    text-align: center;
+  }
+
+  /* ========== EXECUTIVE SUMMARY ========== */
+  .exec-summary {
+    background: var(--ivory);
+    border-left: 1.4pt solid var(--brand);
+    border-radius: 6pt;
+    padding: 16pt 20pt;
+    margin: 14pt 0;
+    break-inside: avoid;
+  }
+  .exec-summary h2 {
+    margin-top: 0;
+    font-size: 13pt;
+  }
+
+  /* ========== CHAPTER BREAK ========== */
+  .chapter { break-before: page; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div>
+    <div class="cover-eyebrow">TECHNICAL REPORT</div>
+    <div class="cover-title">NVIDIA cuda-oxide<br>技术项目调研</div>
+    <div class="cover-sub">Rust-to-CUDA 编译器项目的架构、成熟度、产业价值和采用边界。</div>
+  </div>
+  <div class="cover-meta">
+    <strong>muclover</strong><br>
+    Long Doc  ·  2026.05.11<br>
+    基于原始 Markdown 报告整理
+  </div>
+</section>
+
+<section class="toc">
+  <h2>目录</h2>
+  <div class="toc-item"><span class="toc-num">01</span><span class="toc-title">执行摘要</span><span class="toc-page">03</span></div>
+  <div class="toc-item"><span class="toc-num">02</span><span class="toc-title">问题背景与判断框架</span><span class="toc-page">04</span></div>
+  <div class="toc-item"><span class="toc-num">03</span><span class="toc-title">架构和实现路径</span><span class="toc-page">06</span></div>
+  <div class="toc-item"><span class="toc-num">04</span><span class="toc-title">成熟度、竞品和落地边界</span><span class="toc-page">09</span></div>
+  <div class="toc-item"><span class="toc-num">05</span><span class="toc-title">对 Rust 与 NPU 厂商的启示</span><span class="toc-page">12</span></div>
+  <div class="toc-item"><span class="toc-num">06</span><span class="toc-title">行动建议与资料来源</span><span class="toc-page">14</span></div>
+</section>
+
+<section class="chapter">
+  <div class="chapter-num">01 · Executive Summary</div>
+  <h1>执行摘要</h1>
+  <p class="lead">cuda-oxide 是 NVIDIA NVlabs 开源的实验性 Rust-to-CUDA 编译器项目。它的价值不在于立刻替代 CUDA C++，而在于验证 <span class="hl">Rust 是否能成为 CUDA SIMT kernel 的一等语言</span>。</p>
+  <div class="exec-summary">
+    <h2>结论先行</h2>
+    <p>本报告建议将 cuda-oxide 作为 Rust + GPU 编程方向的 PoC 和技术跟踪对象。它已经有 v0.1.0 release、46 个示例、feature matrix、cargo subcommand、诊断命令和多层 runtime crate，但仍处于 early alpha，存在工具链复杂、API 破坏性变更、GPU CI 不透明和 soundness gap 等问题。</p>
+  </div>
+  <h2>核心 Takeaways</h2>
+  <ul>
+    <li><span class="hl">适合小规模验证</span>：GPU 编译器、AI infra、NVIDIA 新硬件特性和 Rust 安全抽象相关团队可以先做非关键 kernel 迁移实验。</li>
+    <li><span class="hl">不适合生产替代</span>：CUDA C++、Triton、TileLang 仍是当前生产主路径；cuda-oxide 还不能承担关键业务链路。</li>
+    <li><span class="hl">对 NPU 厂商有启发</span>：Rust 的切入点应先放在 host runtime、driver binding、IR pass、debug tooling 和安全 kernel API。</li>
+    <li><span class="hl">真正风险在工具链</span>：nightly、rustc_private、Stable MIR、Pliron、LLVM NVPTX、CUDA driver/toolkit 共同构成了高维护成本。</li>
+  </ul>
+  <div class="takeaway">
+    <div class="takeaway-label">本文档回答的问题</div>
+    cuda-oxide 解决什么问题？它比 CUDA C++、Triton、TileLang 多出什么？现在能否进生产？NPU/AI 加速器厂商应该复制什么、避免什么？
+  </div>
+</section>
+
+<section class="chapter">
+  <div class="chapter-num">02 · Framing</div>
+  <h1>问题背景与判断框架</h1>
+  <p class="lead">GPU kernel 开发长期被 CUDA C++ 和 DSL/JIT 框架主导。Rust 的增量不只是语法替换，而是类型系统、工程体系和安全边界进入 device code。</p>
+  <h2>现有路线各有边界</h2>
+  <table class="striped">
+    <thead><tr><th>路线</th><th>强项</th><th>主要边界</th></tr></thead>
+    <tbody>
+      <tr><td>CUDA C++</td><td>生产成熟、硬件跟进快、库生态完整</td><td>内存安全、双语言工程和模板复杂度依赖工程纪律</td></tr>
+      <tr><td>Triton / TileLang</td><td>AI 算子开发效率高，适合 matmul、attention、pipeline、autotune</td><td>DSL 语言子集和调试边界限制系统级开发</td></tr>
+      <tr><td>cudarc 等 binding</td><td>Rust host 可以安全调用 CUDA Driver API</td><td>不解决 Rust 编写 device kernel</td></tr>
+      <tr><td>Rust-GPU / CubeCL</td><td>更重视跨厂商 portability</td><td>不追求 TMA、WGMMA、cluster 等 CUDA-first 能力</td></tr>
+    </tbody>
+  </table>
+  <div class="callout">判断 cuda-oxide 时，不能只问“能否写 GPU 代码”。更有用的问题是：团队是否同时需要 CUDA 底层特性、Rust 工程化、安全抽象和较完整语言能力。</div>
+  <h2>Rust 的增量来自四个方向</h2>
+  <ul>
+    <li>把线程索引、输出写入、生命周期和 ABI 等约束尽量编码进类型系统。</li>
+    <li>用泛型、trait、module 和 crate 组织 GPU kernel，而不是只靠模板和宏。</li>
+    <li>让 host/device 代码留在 Cargo 体系里，减少 C ABI、头文件、链接和构建系统断层。</li>
+    <li>把常见数据并行模式放进 safe API，把 TMA、WGMMA、tensor core 等能力留在显式 unsafe 层。</li>
+  </ul>
+</section>
+
+<section class="chapter">
+  <div class="chapter-num">03 · Architecture</div>
+  <h1>架构和实现路径</h1>
+  <p class="lead">cuda-oxide 不是一个 runtime wrapper，而是一条从 proc macro、rustc backend、Stable MIR、Pliron dialect、LLVM IR 到 PTX 的完整编译链。</p>
+  <figure>
+    
+<svg viewBox="0 0 1000 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="cuda-oxide 编译链路">
+  <defs>
+    <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.9" fill="#E3E2DC"/>
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="#f5f4ed"/>
+  <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
+  <text x="80" y="38" fill="#1B365D" font-size="13" font-weight="600" font-family="monospace" letter-spacing="3">FIGURE  1</text>
+  <text x="195" y="38" fill="#504e49" font-size="13" font-family="monospace" letter-spacing="3">RUST TO PTX PIPELINE</text>
+  <line x1="80" y1="52" x2="920" y2="52" stroke="#1B365D" stroke-width="0.8"/>
+
+  <rect x="80" y="128" width="144" height="64" rx="8" fill="#faf9f5" stroke="#504e49" stroke-width="1"/>
+  <text x="152" y="156" text-anchor="middle" fill="#141413" font-size="22" font-family="serif">Rust 源码</text>
+  <text x="152" y="178" text-anchor="middle" fill="#6b6a64" font-size="14" font-family="monospace">host + device</text>
+
+  <rect x="272" y="128" width="144" height="64" rx="8" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.4"/>
+  <text x="344" y="156" text-anchor="middle" fill="#141413" font-size="22" font-family="serif">rustc 前端</text>
+  <text x="344" y="178" text-anchor="middle" fill="#1B365D" font-size="14" font-family="monospace">MIR / mono</text>
+
+  <rect x="464" y="128" width="144" height="64" rx="8" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.4"/>
+  <text x="536" y="156" text-anchor="middle" fill="#141413" font-size="22" font-family="serif">CUDA 后端</text>
+  <text x="536" y="178" text-anchor="middle" fill="#1B365D" font-size="14" font-family="monospace">collect + bridge</text>
+
+  <rect x="656" y="128" width="144" height="64" rx="8" fill="#faf9f5" stroke="#504e49" stroke-width="1"/>
+  <text x="728" y="156" text-anchor="middle" fill="#141413" font-size="22" font-family="serif">Pliron IR</text>
+  <text x="728" y="178" text-anchor="middle" fill="#6b6a64" font-size="14" font-family="monospace">MIR dialect</text>
+
+  <rect x="464" y="256" width="144" height="64" rx="8" fill="#EAE9E2" stroke="#504e49" stroke-width="1"/>
+  <text x="536" y="284" text-anchor="middle" fill="#141413" font-size="22" font-family="serif">LLVM IR</text>
+  <text x="536" y="306" text-anchor="middle" fill="#6b6a64" font-size="14" font-family="monospace">NVVM / llc</text>
+
+  <rect x="656" y="256" width="144" height="64" rx="8" fill="#faf9f5" stroke="#504e49" stroke-width="1"/>
+  <text x="728" y="284" text-anchor="middle" fill="#141413" font-size="22" font-family="serif">PTX 输出</text>
+  <text x="728" y="306" text-anchor="middle" fill="#6b6a64" font-size="14" font-family="monospace">CUDA driver</text>
+
+  <path d="M224 160 H272" fill="none" stroke="#504e49" stroke-width="1.2"/>
+  <path d="M264 154 L272 160 L264 166" fill="none" stroke="#504e49" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M416 160 H464" fill="none" stroke="#1B365D" stroke-width="1.3"/>
+  <path d="M456 154 L464 160 L456 166" fill="none" stroke="#1B365D" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M608 160 H656" fill="none" stroke="#504e49" stroke-width="1.2"/>
+  <path d="M648 154 L656 160 L648 166" fill="none" stroke="#504e49" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M728 192 V224 Q728 256 608 288" fill="none" stroke="#504e49" stroke-width="1.2"/>
+  <path d="M616 280 L608 288 L620 290" fill="none" stroke="#504e49" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M608 288 H656" fill="none" stroke="#504e49" stroke-width="1.2"/>
+  <path d="M648 282 L656 288 L648 294" fill="none" stroke="#504e49" stroke-width="1.5" stroke-linecap="round"/>
+</svg>
+
+    <figcaption>cuda-oxide 复用 rustc 前端和 LLVM NVPTX 后端，中间用 Pliron 承接 MIR 与 lowering。</figcaption>
+  </figure>
+  <h2>关键实现选择</h2>
+  <ul>
+    <li><span class="hl">Kernel 标记</span>：`#[kernel]`、`#[device]` 和 reserved symbols 让 backend 在 monomorphization 之后识别 device entry。</li>
+    <li><span class="hl">函数收集</span>：`rustc-codegen-cuda` 扫描 codegen units，从 kernel 出发遍历 MIR call graph，收集 transitive device callees。</li>
+    <li><span class="hl">IR 管线</span>：Stable MIR 先落到 `dialect-mir`，经 `mem2reg` 和 `mir-lower` 降到 `dialect-llvm`，再导出 LLVM IR 或 PTX。</li>
+    <li><span class="hl">目标选择</span>：pipeline 会根据 TMA、WGMMA、tcgen05/TMEM 等能力倾向选择 Hopper 或 Blackwell 目标。</li>
+  </ul>
+  <h2>Host runtime 不只是 launch wrapper</h2>
+  <p>`cuda-core` 封装 CUDA Driver API 的 RAII 对象；`cuda-host` 处理 PTX entry name 查找和参数 scalarize/marshal；`cuda-async` 把 kernel launch 抽象成 lazy `DeviceOperation`，并用 host callback 唤醒 Rust async executor。</p>
+</section>
+
+<section class="chapter">
+  <div class="chapter-num">04 · Readiness</div>
+  <h1>成熟度、竞品和落地边界</h1>
+  <p class="lead">cuda-oxide 已经超过 demo，但离生产级 compiler/runtime 仍有距离。当前阶段最适合做目标 workload 的复测，而不是做平台迁移。</p>
+  <h2>成熟度信号</h2>
+  <table class="compact striped">
+    <thead><tr><th>维度</th><th>已具备</th><th>仍需验证</th></tr></thead>
+    <tbody>
+      <tr><td>发布状态</td><td>v0.1.0, 2026-05-07, early alpha</td><td>语义版本承诺、迁移指南、API 稳定性</td></tr>
+      <tr><td>仓库信号</td><td>本次调研记录 1,278 stars、69 forks、4 open issues、12 PRs</td><td>长期维护节奏和外部采用案例</td></tr>
+      <tr><td>功能覆盖</td><td>泛型、closures、ABI scalarization、PTX/NVVM IR/LTOIR、TMA、cluster、Blackwell tensor core</td><td>inline asm、FP8/MX、device heap、std/alloc、panic unwinding</td></tr>
+      <tr><td>性能样例</td><td>B200 上 `gemm_sol` 868 TFLOPS, 约 cuBLAS 58%</td><td>目标业务 kernel 的真实性能、调试成本和 CI 稳定性</td></tr>
+    </tbody>
+  </table>
+  <h2>采用边界</h2>
+  <div class="callout">短期推荐路径是“非关键 kernel + 独立 benchmark + pipeline 诊断 + unsafe 审查”。不建议直接替换 CUDA C++/Triton/TileLang 主路径。</div>
+  <ol>
+    <li>在目标 GPU、driver、CUDA Toolkit、LLVM 版本上复测 `cargo oxide doctor/run/pipeline`。</li>
+    <li>选择一个非关键 kernel 验证表达能力、unsafe 范围、生成 PTX 和性能。</li>
+    <li>把调试、profiling、CI、容器化和 license/nightly pin 纳入评估，而不是只看样例能否运行。</li>
+  </ol>
+</section>
+
+<section class="chapter">
+  <div class="chapter-num">05 · Implications</div>
+  <h1>对 Rust 与 NPU 厂商的启示</h1>
+  <p class="lead">cuda-oxide 对 Rust 社区的价值，在于暴露异构计算需要哪些编译器接口和安全抽象。对 NPU 厂商的价值，则在于提醒它们建设语言入口，而不是只暴露 C API。</p>
+  <h2>Rust 语言和生态需要补的课</h2>
+  <ul>
+    <li>稳定 MIR 访问、codegen backend 插件边界、target-specific ABI 描述和诊断接口。</li>
+    <li>探索 thread index witness type、kernel-scoped lifetime、address-space-aware reference、memory scope/order 等模式。</li>
+    <li>让 Rust 先进入异构 runtime、driver binding、调度器、profiling 和安全 FFI 边界，再逐步扩大到 device kernel。</li>
+  </ul>
+  <h2>其他厂商不应照抄 CUDA 语法</h2>
+  <p>华为 Ascend/CANN、Google TPU/OpenXLA、AMD、Intel 和国内其他 NPU/GPU 厂商更适合建立多层入口：底层保留 C/C++/ISA/厂商 intrinsic，中层打通 MLIR/OpenXLA/IREE/Triton/TileLang，上层提供 Rust/Python 等语言友好 API。Rust 的位置更像安全系统层和可维护 kernel 抽象层。</p>
+</section>
+
+<section class="chapter">
+  <div class="chapter-num">06 · Recommendation</div>
+  <h1>行动建议与资料来源</h1>
+  <p class="lead">最终建议是跟踪，但分阶段推进。技术战略团队可以立项 PoC；GPU kernel 团队选择非关键 kernel 实验；生产系统团队暂不迁移主路径。</p>
+  <h2>决策矩阵</h2>
+  <table class="striped">
+    <thead><tr><th>团队类型</th><th>建议动作</th><th>原因</th></tr></thead>
+    <tbody>
+      <tr><td>技术战略团队</td><td>立项前沿技术跟踪和 PoC</td><td>项目有 NVIDIA 背书和完整链路，适合观察 Rust GPU 方向</td></tr>
+      <tr><td>GPU kernel 团队</td><td>选择非关键 kernel 做迁移实验</td><td>能验证表达能力、PTX 质量和 unsafe 审查成本</td></tr>
+      <tr><td>生产系统团队</td><td>暂不替换 CUDA C++/Triton/TileLang</td><td>alpha 状态和工具链复杂度不适合关键路径</td></tr>
+      <tr><td>Rust infra 团队</td><td>研究安全抽象和编译链设计</td><td>`ThreadIndex`、`DisjointSlice`、typestate barrier 值得沉淀</td></tr>
+    </tbody>
+  </table>
+  <h2>主要资料来源</h2>
+  <ul>
+    <li>cuda-oxide 官方文档、GitHub 仓库、v0.1.0 release、Architecture Overview、Supported Features、Rust + GPU Ecosystem。</li>
+    <li>NVIDIA CUDA C++ Programming Guide、OpenXLA、IREE、MLIR、Huawei Ascend/CANN、Triton、TileLang、Rust-GPU、CubeCL 官方资料。</li>
+    <li>本地仓库文件：`README.md`、`Cargo.toml`、`rust-toolchain.toml`、`.github/workflows/*`、`cuda-oxide-book/*`、`crates/*/README.md`。</li>
+  </ul>
+</section>
+</body>
+</html>

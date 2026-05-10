@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>cuda-oxide 技术项目调研 · Slides</title>
+<style>
+  @font-face { font-family: "TsangerJinKai02"; src: url("../.codex/skills/kami/assets/fonts/TsangerJinKai02-W04.ttf") format("truetype"), url("https://cdn.jsdelivr.net/gh/tw93/Kami@main/assets/fonts/TsangerJinKai02-W04.ttf") format("truetype"); font-weight: 400; }
+  @font-face { font-family: "TsangerJinKai02"; src: url("../.codex/skills/kami/assets/fonts/TsangerJinKai02-W05.ttf") format("truetype"), url("https://cdn.jsdelivr.net/gh/tw93/Kami@main/assets/fonts/TsangerJinKai02-W05.ttf") format("truetype"); font-weight: 500; }
+  @font-face { font-family: "JetBrains Mono"; src: url("../.codex/skills/kami/assets/fonts/JetBrainsMono.woff2") format("woff2"); font-weight: 400; }
+
+  @page {
+    size: 280mm 158mm;
+    margin: 0;
+    background: #f5f4ed;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --parchment:  #f5f4ed;
+    --ivory:      #faf9f5;
+    --near-black: #141413;
+    --dark-warm:  #3d3d3a;
+    --olive:      #504e49;
+    --stone:      #6b6a64;
+    --brand:      #1B365D;
+    --brand-tint: #EEF2F7;
+    --border:     #e8e6dc;
+    --border-soft:#e5e3d8;
+
+    --serif: "TsangerJinKai02", "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "STSong", Georgia, serif;
+    --sans:  var(--serif);
+    --mono:  "JetBrains Mono", "SF Mono", "Fira Code", Consolas, Monaco, "TsangerJinKai02", "Source Han Serif SC", monospace;
+  }
+
+  body {
+    color: var(--near-black);
+    font-family: var(--sans);
+    font-size: 13pt;
+    line-height: 1.55;
+    letter-spacing: 0.3pt;
+  }
+
+  .slide {
+    width: 280mm;
+    height: 158mm;
+    padding: 16mm 20mm;
+    background: var(--parchment);
+    break-after: page;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .slide:last-child { break-after: auto; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 9.5pt;
+    letter-spacing: 2pt;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-bottom: 2pt;
+  }
+
+  .page-num {
+    position: absolute;
+    bottom: 10mm;
+    right: 20mm;
+    font-family: var(--mono);
+    font-size: 9pt;
+    color: var(--stone);
+    letter-spacing: 0.5pt;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .footer-mark {
+    position: absolute;
+    bottom: 10mm;
+    left: 20mm;
+    font-family: var(--mono);
+    font-size: 9pt;
+    color: var(--stone);
+    letter-spacing: 1.5pt;
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: 24pt;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0.3pt;
+    color: var(--near-black);
+    margin-bottom: 14pt;
+  }
+
+  h3 {
+    font-family: var(--serif);
+    font-size: 15pt;
+    font-weight: 500;
+    line-height: 1.3;
+    letter-spacing: 0.3pt;
+    color: var(--brand);
+    margin-bottom: 8pt;
+  }
+
+  .lead {
+    font-family: var(--sans);
+    font-size: 12pt;
+    font-weight: 400;
+    line-height: 1.55;
+    letter-spacing: 0.3pt;
+    color: var(--olive);
+    margin-bottom: 8pt;
+  }
+
+  .mt {
+    font-family: var(--serif);
+    font-size: 16pt;
+    font-weight: 500;
+    line-height: 1.3;
+    letter-spacing: 0.3pt;
+    color: var(--near-black);
+    margin-bottom: 8pt;
+  }
+
+  .ml {
+    font-family: var(--serif);
+    font-size: 24pt;
+    font-weight: 500;
+    color: var(--brand);
+    margin-right: 6pt;
+  }
+
+  .ms {
+    font-family: var(--mono);
+    font-size: 7.5pt;
+    letter-spacing: 1.5pt;
+    text-transform: uppercase;
+    color: var(--stone);
+    border-bottom: 0.3pt solid var(--border);
+    padding-bottom: 4pt;
+    margin-bottom: 14pt;
+  }
+
+  .mb {
+    font-family: var(--sans);
+    font-size: 11pt;
+    line-height: 1.55;
+    letter-spacing: 0.3pt;
+    color: var(--dark-warm);
+    margin-bottom: 18pt;
+  }
+
+  .mi {
+    font-family: var(--sans);
+    font-size: 11pt;
+    line-height: 1.55;
+    letter-spacing: 0.3pt;
+    color: var(--dark-warm);
+    padding: 8pt 0;
+  }
+
+  .mc {
+    font-family: var(--sans);
+    font-size: 9.5pt;
+    line-height: 1.5;
+    letter-spacing: 0.3pt;
+    color: var(--olive);
+    border-top: 0.3pt solid var(--border);
+    padding-top: 8pt;
+    margin-top: 18pt;
+  }
+
+  .co {
+    font-family: var(--sans);
+    font-size: 11pt;
+    font-weight: 500;
+    line-height: 1.55;
+    letter-spacing: 0.3pt;
+    color: var(--brand);
+    position: absolute;
+    bottom: 12mm;
+    left: 20mm;
+    right: 20mm;
+  }
+
+  .c2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22pt;
+  }
+
+  /* 2×2 对齐布局必须用 table，CSS Grid 会导致行高不对齐 */
+  .t2x2 {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 22pt 18pt;
+    margin: -18pt -22pt;
+  }
+  .t2x2 td {
+    vertical-align: top;
+    width: 50%;
+  }
+
+  table.data {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  table.data td {
+    padding: 8pt;
+    border-bottom: 0.3pt solid var(--border);
+    font-size: 11pt;
+    line-height: 1.55;
+    letter-spacing: 0.3pt;
+  }
+  table.data td:first-child {
+    font-weight: 500;
+    color: var(--brand);
+  }
+
+  svg {
+    max-height: 105mm;
+    width: auto;
+  }
+
+  .cover {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .cover h1 {
+    font-family: var(--serif);
+    font-size: 38pt;
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: 0.3pt;
+    color: var(--near-black);
+    margin-bottom: 12pt;
+  }
+  .cover .sub {
+    font-family: var(--sans);
+    font-size: 14pt;
+    line-height: 1.5;
+    letter-spacing: 0.3pt;
+    color: var(--olive);
+    max-width: 50ch;
+    margin-bottom: 32pt;
+  }
+  .cover .meta {
+    font-family: var(--sans);
+    font-size: 10pt;
+    color: var(--stone);
+    letter-spacing: 0.3pt;
+  }
+</style>
+</head>
+<body>
+
+<section class="slide cover">
+  <h1>NVIDIA cuda-oxide 技术项目调研</h1>
+  <div class="sub">Rust-to-CUDA 编译器项目的架构、成熟度和采用边界。</div>
+  <div class="meta">muclover · 2026.05.11</div>
+</section>
+
+<section class="slide">
+  <span class="eyebrow">01 · 判断</span>
+  <h2>cuda-oxide 值得做 PoC，但不该直接进生产关键路径。</h2>
+  <p class="lead">v0.1.0 仍是 early alpha。适合技术战略、GPU compiler 和 Rust infra 团队验证，不适合替代 CUDA C++/Triton 主路径。</p>
+  <table class="t2x2">
+    <tr><td><div class="mt"><span class="ml">A</span>跟踪对象</div><p class="mb">Rust + GPU 编程、CUDA 新硬件特性和安全抽象。</p></td>
+    <td><div class="mt"><span class="ml">B</span>当前边界</div><p class="mb">alpha 状态、API breakage、GPU CI 和 soundness 仍需验证。</p></td></tr>
+    <tr><td><div class="mt"><span class="ml">C</span>适合团队</div><p class="mb">技术战略、GPU kernel、Rust infra 和 compiler research。</p></td>
+    <td><div class="mt"><span class="ml">D</span>不适合动作</div><p class="mb">直接替换 CUDA C++/Triton/TileLang 生产路径。</p></td></tr>
+  </table>
+  <div class="page-num">01</div><div class="footer-mark">CUDA-OXIDE</div>
+</section>
+
+<section class="slide">
+  <span class="eyebrow">02 · 定位</span>
+  <h2>它解决的是 Rust device kernel，而不是 Rust host binding。</h2>
+  <p class="lead">cudarc 让 Rust 调 CUDA Driver API；cuda-oxide 试图让 Rust 代码经过 rustc、MIR、Pliron、LLVM NVPTX 生成 PTX。</p>
+  <div class="c2">
+    <div><h3>读法</h3><p class="mb">把它看成编译器和 runtime 入口，而不是语法糖。</p></div>
+    <div><h3>判断</h3><p class="mb">当 Rust 工程化、安全边界和 CUDA 模型同时重要时，它才有差异。</p></div>
+  </div>
+  <div class="page-num">02</div><div class="footer-mark">CUDA-OXIDE</div>
+</section>
+
+<section class="slide">
+  <span class="eyebrow">03 · 增量</span>
+  <h2>Rust 的价值来自类型约束、工程统一和 unsafe 边界。</h2>
+  <p class="lead">ThreadIndex + DisjointSlice 把“每线程写不同槽位”做成 API 约束；Cargo 统一 host/device；高级硬件能力留给显式 unsafe。</p>
+  <div class="c2">
+    <div><h3>读法</h3><p class="mb">把它看成编译器和 runtime 入口，而不是语法糖。</p></div>
+    <div><h3>判断</h3><p class="mb">当 Rust 工程化、安全边界和 CUDA 模型同时重要时，它才有差异。</p></div>
+  </div>
+  <div class="page-num">03</div><div class="footer-mark">CUDA-OXIDE</div>
+</section>
+
+<section class="slide">
+  <span class="eyebrow">04 · 架构</span>
+  <h2>项目的护城河在编译链，而不是单个 crate。</h2>
+  <p class="lead">proc macro 标记 kernel；rustc backend 收集 device call graph；Stable MIR 进入 Pliron；LLVM NVPTX 输出 PTX。</p>
+  <div class="c2">
+    <div><h3>读法</h3><p class="mb">把它看成编译器和 runtime 入口，而不是语法糖。</p></div>
+    <div><h3>判断</h3><p class="mb">当 Rust 工程化、安全边界和 CUDA 模型同时重要时，它才有差异。</p></div>
+  </div>
+  <div class="page-num">04</div><div class="footer-mark">CUDA-OXIDE</div>
+</section>
+
+<section class="slide">
+  <span class="eyebrow">05 · 证据</span>
+  <h2>它已经超过 demo，但离生产 compiler 还很远。</h2>
+  <table class="data">
+    <tr><td>发布</td><td>v0.1.0, 2026-05-07, early alpha</td><td>研究和 PoC 可用</td></tr>
+    <tr><td>覆盖</td><td>46 个示例、feature matrix、pipeline inspection</td><td>不是空壳 demo</td></tr>
+    <tr><td>性能</td><td>B200 GEMM 样例 868 TFLOPS, 约 cuBLAS 58%</td><td>能力证明，不是承诺</td></tr>
+    <tr><td>依赖</td><td>nightly、rustc_private、LLVM 21+、CUDA Toolkit</td><td>生产维护成本高</td></tr>
+  </table>
+  <div class="page-num">05</div><div class="footer-mark">CUDA-OXIDE</div>
+</section>
+
+<section class="slide">
+  <span class="eyebrow">06 · 竞品</span>
+  <h2>Triton 和 TileLang 仍更适合快速写 AI 算子。</h2>
+  <p class="mb">matmul、attention、dequant、pipeline、autotune 更贴近 DSL/tile-level 框架；cuda-oxide 更适合 Rust-first + CUDA SIMT 完整控制。</p>
+  <div class="co">所以：评估 cuda-oxide 时，重点看目标 workload、调试链路、unsafe 审查和工具链复现，而不是只看 hello kernel。</div>
+  <div class="page-num">06</div><div class="footer-mark">CUDA-OXIDE</div>
+</section>
+
+<section class="slide">
+  <span class="eyebrow">07 · 风险</span>
+  <h2>最大的风险不是语法，而是工具链和 soundness。</h2>
+  <p class="mb">错误可能来自 rustc、macro、MIR lowering、Pliron、LLVM IR、llc、PTX 和 CUDA runtime；`index_2d(row_stride)` 已记录 soundness gap。</p>
+  <div class="co">所以：评估 cuda-oxide 时，重点看目标 workload、调试链路、unsafe 审查和工具链复现，而不是只看 hello kernel。</div>
+  <div class="page-num">07</div><div class="footer-mark">CUDA-OXIDE</div>
+</section>
+
+<section class="slide">
+  <span class="eyebrow">08 · 厂商启示</span>
+  <h2>NPU 厂商应建设语言入口，而不是照抄 CUDA 语法。</h2>
+  <p class="mb">短期优先 Rust host runtime、driver binding、算子辅助库、IR pass、debug tooling 和安全 kernel API。</p>
+  <div class="co">所以：评估 cuda-oxide 时，重点看目标 workload、调试链路、unsafe 审查和工具链复现，而不是只看 hello kernel。</div>
+  <div class="page-num">08</div><div class="footer-mark">CUDA-OXIDE</div>
+</section>
+
+<section class="slide">
+  <span class="eyebrow">09 · 行动</span>
+  <h2>下一步只需要一个小 PoC，而不是平台迁移。</h2>
+  <table class="data">
+    <tr><td>1</td><td>复现目标环境</td><td>GPU、driver、CUDA Toolkit、LLVM、nightly</td></tr>
+    <tr><td>2</td><td>迁移非关键 kernel</td><td>记录表达能力、unsafe 范围和 PTX 性能</td></tr>
+    <tr><td>3</td><td>做生产前评估</td><td>CI、debug、profiling、容器化、license、API breakage</td></tr>
+  </table>
+  <div class="co">明确建议：跟踪并做小 PoC；生产系统暂不迁移主路径。</div>
+  <div class="page-num">09</div><div class="footer-mark">CUDA-OXIDE</div>
+</section>
+</body>
+</html>
